@@ -2,8 +2,8 @@ const readline = require('readline');
 const fs = require('fs');
 
 
-const todos = [];
-const interface = readline.createInterface({input: process.stdin, output: process.stdout})
+let todos = [];
+const interface = readline.createInterface({ input: process.stdin, output: process.stdout })
 const menu = `
 Your options are:
 
@@ -15,33 +15,27 @@ Your options are:
 
 `
 
-const loadTodos = function() {
-  todos.splice(0);
-  const file = fs.readFileSync('./todos.csv', 'utf8');
-  const rows = file.split('\n');
-  for (const rowString of rows) {
-    const todo = rowString.split(',')
-    todos.push(todo);
-  }
+const loadTodos = function () {
+  const file = fs.readFileSync(__dirname + '/../back-end/todos.json', 'utf8')
+  let data = JSON.parse(file)
+  todos = data.todos
 }
 
-const saveTodos = function() {
-  const rowStrings = [];
-  for (const todo of todos) {
-    rowStrings.push(todo[0] + ',' + todo[1]);
-  }
 
-  const newContents = rowStrings.join('\n');
-  fs.writeFileSync('./todos.csv', newContents);
+
+const saveTodos = function () {
+  let obj = {
+    todos: todos,
+  }
+  let newContents = JSON.stringify(obj, null, 2)
+  fs.writeFileSync(__dirname + '/../back-end/todos.json', newContents);
 }
 
-const displayTodos = function(shouldPrintNumber) {
+
+const displayTodos = function (shouldPrintNumber) {
   console.log('\nHere are your current todos:\n')
   for (let i = 0; i < todos.length; i++) {
     const todo = todos[i];
-    const text = todo[0];
-    const isComplete = todo[1];
-    const priority = todo[2];
     const num = i + 1;
     let listSymbol = '*';
     let mark = '✖';
@@ -49,58 +43,52 @@ const displayTodos = function(shouldPrintNumber) {
       listSymbol = num + '.';
     }
 
-    if (isComplete === 'complete') {
+    if (todo.isComplete === true) {
       mark = '✅';
     }
 
-    const todoLine = listSymbol + ' ' + text + ' - priority: ' + priority + ' - ' + mark;
-    // or, using interpolation:
-    // const todoLine = `${listSymbol} ${todo.text} - priority: ${todo.priority} - ${mark}`
+    const todoLine = `${listSymbol} ${todo.text} - priority: ${todo.priority} - ${mark}`
     console.log(todoLine);
   }
 }
 
-const add = function(text) {
-  const todo = [text, 'uncomplete'];
+const add = function (text) {
+  const todo = {
+    text: text,
+    isComplete: false,
+    priority: 1,
+  }
   todos.push(todo);
   saveTodos();
   displayTodos(false);
   interface.close();
 }
 
-const remove = function(num) {
+const remove = function (num) {
+  num = Number(num)
   todos.splice(num - 1, 1);
   saveTodos();
   displayTodos(false);
   interface.close();
 }
 
-const complete = function(num) {
-  [['thing1', 'complete'], ['thing2', 'uncomplete']]
-  for (let i = 0; i < todos.length; i++) {
-    if (i + 1 === Number(num)) {
-      todos[i][1] = 'complete';
-    }
-  }
-
+const complete = function (num) {
+  num = Number(num)
+  todos[num - 1].isComplete = true
   saveTodos();
   displayTodos(false);
   interface.close();
 }
 
-const uncomplete = function(num) {
-  for (let i = 0; i < todos.length; i++) {
-    if (i + 1 === Number(num)) {
-      todos[i][1] = 'uncomplete';
-    }
-  }
-
+const uncomplete = function (num) {
+  num = Number(num)
+  todos[num - 1].isComplete = false
   saveTodos();
   displayTodos(false);
   interface.close();
 }
 
-const handleMenu = function(cmd) {
+const handleMenu = function (cmd) {
   if (cmd === '1') {
     // Add a todo.
     interface.question('\nWhat should go on your list? ', add)
