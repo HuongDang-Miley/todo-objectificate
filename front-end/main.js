@@ -11,7 +11,9 @@ Your options are:
 2. Remove a todo.
 3. Mark a todo completed.
 4. Mark a todo uncompleted.
-5. Quit.
+5. Set priority.
+6. Delete all completed todos.
+7. Quit.
 
 `
 
@@ -88,6 +90,37 @@ const uncomplete = function (num) {
   interface.close();
 }
 
+// Stretch goals:
+// toggle priority
+const priority = function (num) {
+  num = Number(num)
+  if (todos[num - 1].priority === 1) {
+    todos[num - 1].priority = 2
+  } else if (todos[num - 1].priority === 2) {
+    todos[num - 1].priority = 1
+  }
+  saveTodos();
+  displayTodos(false);
+  interface.close();
+}
+
+// delete completed todos
+const deleteComplete = function(answer) {
+  let newTodos = []
+  if ('yes'.includes(answer.toLowerCase())) {
+    for (let i =0; i<todos.length; i++) {
+      if (todos[i].isComplete !== true) {
+        newTodos.push(todos[i])
+      }
+    }
+  }
+
+  todos = newTodos 
+  saveTodos();
+  displayTodos(false);
+  interface.close();
+}
+
 const handleMenu = function (cmd) {
   if (cmd === '1') {
     // Add a todo.
@@ -104,11 +137,18 @@ const handleMenu = function (cmd) {
     // Mark a todo complete.
     displayTodos(true);
     interface.question('\nPlease pick a todo to mark uncomplete: ', uncomplete)
+  } else if (cmd === '5') {
+    displayTodos(true);
+    interface.question('\nSelect a todo to toggle priority between 1 and 2: ', priority)
+  } else if (cmd === '6') {
+    displayTodos(true);
+    interface.question('\nDELETE all completed todos Y or N: ', deleteComplete)
   } else {
     console.log('Quitting!');
     interface.close();
   }
 }
+
 
 loadTodos();
 displayTodos(false);
